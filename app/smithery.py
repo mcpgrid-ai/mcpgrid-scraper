@@ -83,6 +83,8 @@ class SmithreApi():
         
     def process_tools(self, tools):
         processed_tools = []
+        if tools is None:
+            return processed_tools
         for origin_tool_data in tools:
             tool_data = {
                 "id": origin_tool_data["name"],
