@@ -1,6 +1,7 @@
 import requests
 import time
 from lxml import html
+from pathlib import Path
 
 from .constants import SECURED_PARAMETERS_PATTERNS_LIST, WEB_HEADERS
 
@@ -64,13 +65,30 @@ class SmithreApi():
         return server_data
     
     def get_server_data_web(self, server_name):
-        try:
-            res = self.http_client.get(self.__web_endpoint + server_name, headers=WEB_HEADERS)
-        except requests.exceptions.TooManyRedirects as e:
+        is_valid_html = False
+        for i in range(0, 3):
+            try:
+                res = self.http_client.get(self.__web_endpoint + server_name, headers=WEB_HEADERS)
+            except requests.exceptions.TooManyRedirects as e:
+                return {"exists": False}
+            except Exception as e:
+                time.sleep(5)
+                continue
+            if res.status_code == 404:
+                return {"exists": False}
+            tree = html.fromstring(res.text)
+            is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0
+            if is_valid_html:
+                break
+            timestamp = int(time.time())
+            Path("./errors/").mkdir(exist_ok=True)
+            with open(f'./errors/{server_name}_{res.status_code}_{timestamp}.html', "w+") as f:
+                f.write(res.text)
+            time.sleep(5)
+            print("Request error, retry...")
+        
+        if not is_valid_html:
             return {"exists": False}
-        if res.status_code == 404:
-            return {"exists": False}
-        tree = html.fromstring(res.text)
         official_el = tree.xpath('//h1[./span[@class="truncate"] and ./*[name()="svg"] ]')
         is_official = len(official_el) > 0
         github_urls = tree.xpath('//div[./h3]/a[contains(@href, "https://github.com")]/@href')
