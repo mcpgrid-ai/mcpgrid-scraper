@@ -15,8 +15,8 @@ def main():
     storage_account_key = os.getenv("STORAGE_SERVICE_ACCOUNT_KEY")
     
     app = SmithreApi(api_key)
-    storage_client = storage.Client.from_service_account_json(storage_account_key)
-    # storage_client = storage.Client()
+    # storage_client = storage.Client.from_service_account_json(storage_account_key)
+    storage_client = storage.Client()
     
     servers_list = app.get_all_servers()
 
