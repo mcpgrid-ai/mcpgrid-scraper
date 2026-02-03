@@ -15,8 +15,8 @@ def main():
     storage_account_key = os.getenv("STORAGE_SERVICE_ACCOUNT_KEY")
     
     app = SmithreApi(api_key)
-    # storage_client = storage.Client.from_service_account_json(storage_account_key)
-    storage_client = storage.Client()
+    storage_client = storage.Client.from_service_account_json(storage_account_key)
+    # storage_client = storage.Client()
     
     servers_list = app.get_all_servers()
 
@@ -31,6 +31,10 @@ def main():
         
         server_html_data = app.get_server_data_web(server_name)
         if not server_html_data["exists"]:
+            if "is_valid_html" in server_html_data and not server_html_data["is_valid_html"]:
+                error_file_name = f"./errors/{server_name}_{timestamp}.html"
+                blob = storage_client.bucket(bucket_name).blob(error_file_name)
+                blob.upload_from_string(server_html_data['html'], content_type='text/html')
             print("Server doesn't exists")
             continue
         

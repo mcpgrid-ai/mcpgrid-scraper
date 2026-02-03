@@ -80,15 +80,15 @@ class SmithreApi():
             is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0
             if is_valid_html:
                 break
-            timestamp = int(time.time())
-            Path("./errors/").mkdir(exist_ok=True)
-            with open(f'./errors/{server_name}_{res.status_code}_{timestamp}.html', "w+") as f:
-                f.write(res.text)
+            # timestamp = int(time.time())
+            # Path("./errors/").mkdir(exist_ok=True)
+            # with open(f'./errors/{server_name}_{res.status_code}_{timestamp}.html', "w+") as f:
+            #     f.write(res.text)
             time.sleep(5)
             print("Request error, retry...")
         
         if not is_valid_html:
-            return {"exists": False}
+            return {"exists": False, "is_valid_html": False, "html": res.text}
         official_el = tree.xpath('//h1[./span[@class="truncate"] and ./*[name()="svg"] ]')
         is_official = len(official_el) > 0
         github_urls = tree.xpath('//div[./h3]/a[contains(@href, "https://github.com")]/@href')
