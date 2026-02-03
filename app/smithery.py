@@ -1,7 +1,6 @@
 import requests
 import time
 from lxml import html
-from pathlib import Path
 
 from .constants import SECURED_PARAMETERS_PATTERNS_LIST, WEB_HEADERS
 
@@ -10,8 +9,10 @@ class SmithreApi():
     __api_endpoint = "https://registry.smithery.ai/servers"
     __web_endpoint = "https://smithery.ai/server/"
     
-    def __init__(self, api_key):
+    def __init__(self, api_key, proxy):
         self.http_client = requests.Session()
+        if len(proxy):
+            self.http_client.proxies = {"https":proxy}
         headers = {
             "Authorization": "Bearer " + api_key
         }
