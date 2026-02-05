@@ -1,6 +1,7 @@
 import requests
 import time
 from lxml import html
+from seleniumbase import SB
 
 from .constants import SECURED_PARAMETERS_PATTERNS_LIST, WEB_HEADERS
 
@@ -9,7 +10,7 @@ class SmithreApi():
     __api_endpoint = "https://registry.smithery.ai/servers"
     __web_endpoint = "https://smithery.ai/server/"
     
-    def __init__(self, api_key, proxy):
+    def __init__(self, api_key, proxy, use_browser=False):
         self.http_client = requests.Session()
         if len(proxy):
             self.http_client.proxies = {"https":proxy}
@@ -17,7 +18,8 @@ class SmithreApi():
             "Authorization": "Bearer " + api_key
         }
         self.http_client.headers.update(headers)
-        
+        self.use_browser = use_browser
+
     def get_all_servers(self):
         servers = []
         page = 0
@@ -77,14 +79,14 @@ class SmithreApi():
                 continue
             if res.status_code == 404:
                 return {"exists": False}
+            elif res.status_code == 403 or res.status_code == 429:
+                self.open_browser(self.__web_endpoint + server_name)
+                continue
             tree = html.fromstring(res.text)
             is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0
             if is_valid_html:
                 break
-            # timestamp = int(time.time())
-            # Path("./errors/").mkdir(exist_ok=True)
-            # with open(f'./errors/{server_name}_{res.status_code}_{timestamp}.html', "w+") as f:
-            #     f.write(res.text)
+
             time.sleep(5)
             print("Request error, retry...")
         
@@ -149,3 +151,21 @@ class SmithreApi():
                 processed_settings.append(setting)
         
         return processed_settings
+
+    def open_browser(self, url):
+        if not self.use_browser:
+            return
+        
+        print("Open browser")
+        with SB(locale="en", time_limit=60) as sb:
+            sb.activate_cdp_mode(url)
+            sb.sleep(5)
+            sb.solve_captcha()
+            sb.sleep(5)
+            selenium_cookies = sb.get_cookies()
+            print("Cookies ready")
+
+        for cookie in selenium_cookies:
+            cookie_name = cookie.get("name")
+            cookie_value = cookie.get("value")
+            self.http_client.cookies[cookie_name] = cookie_value
