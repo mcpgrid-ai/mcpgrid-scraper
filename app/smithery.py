@@ -13,7 +13,10 @@ class SmithreApi():
     def __init__(self, api_key, proxy, use_browser=True):
         self.http_client = requests.Session()
         if len(proxy):
+            self.proxy = proxy
             self.http_client.proxies = {"https":proxy}
+        else:
+            self.proxy = None
         headers = {
             "Authorization": "Bearer " + api_key
         }
@@ -156,8 +159,13 @@ class SmithreApi():
         if not self.use_browser:
             return
         
+        if self.proxy is not None:
+            proxy_driver = self.proxy.split("//")[1]
+        else:
+            proxy_driver = None
+        
         print("Open browser")
-        with SB(locale="en", time_limit=60) as sb:
+        with SB(locale="en", time_limit=60, headless=True, proxy=proxy_driver) as sb:
             sb.activate_cdp_mode(url)
             sb.sleep(5)
             sb.solve_captcha()
