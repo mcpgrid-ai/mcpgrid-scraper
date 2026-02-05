@@ -10,7 +10,7 @@ class SmithreApi():
     __api_endpoint = "https://registry.smithery.ai/servers"
     __web_endpoint = "https://smithery.ai/server/"
     
-    def __init__(self, api_key, proxy, use_browser=False):
+    def __init__(self, api_key, proxy, use_browser=True):
         self.http_client = requests.Session()
         if len(proxy):
             self.http_client.proxies = {"https":proxy}
