@@ -7,4 +7,4 @@ requests==2.32.4
 urllib3==2.5.0
 google-cloud-storage>=2.10.0
 google-auth>=2.23.0
-selenimbase==4.46.4
+seleniumbase==4.46.4
