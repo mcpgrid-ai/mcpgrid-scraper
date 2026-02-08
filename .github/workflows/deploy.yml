@@ -7,6 +7,7 @@ on:
 
 env:
   DOCKER_IMAGE: ''
+  GCP_CLOUD_RUN_SERVICE_NAME: mcpgrid-scraper
 
 
 jobs:
@@ -25,7 +26,7 @@ jobs:
 
       - name: Setup environment variables
         run: |
-          echo "DOCKER_IMAGE=${{ vars.GCP_GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_CLOUD_RUN_JOB_NAME }}/${{ github.run_number }}:${{ github.sha }}" >> $GITHUB_ENV
+          echo "DOCKER_IMAGE=${{ vars.GCP_GAR_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.GCP_CLOUD_RUN_SERVICE_NAME }}/${{ env.GCP_CLOUD_RUN_SERVICE_NAME }}:${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Confirm environment variables
         run: |
@@ -52,7 +53,7 @@ jobs:
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          job: ${{ vars.GCP_CLOUD_RUN_JOB_NAME }}
+          job: ${{ env.GCP_CLOUD_RUN_SERVICE_NAME }}
           region: ${{ vars.GCP_REGION }}
           image: ${{ env.DOCKER_IMAGE }}
           flags: |
