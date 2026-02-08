@@ -63,6 +63,7 @@ jobs:
             --memory=1Gi
           secrets: |
             SMITHERY_API_KEY=SMITHERY_API_KEY:latest
+            SMITHERY_WEB_PROXY=SMITHERY_WEB_PROXY:latest
             STORAGE_BACKET_NAME=SCRAPER_STORAGE_BACKET_NAME:latest
           env_vars: |
             STORAGE_BACKET_FOLDER=smithery
