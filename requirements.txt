@@ -1,10 +1,10 @@
-certifi==2025.7.14
-charset-normalizer==3.4.2
-idna==3.10
+certifi==2026.1.4
+charset-normalizer==3.4.4
+idna==3.11
 lxml==6.0.0
 python-dotenv==1.1.1
-requests==2.32.4
-urllib3==2.5.0
+requests==2.32.5
+urllib3==2.6.3
 google-cloud-storage>=2.10.0
 google-auth>=2.23.0
-selenimbase=4.46.4
+seleniumbase==4.46.4
