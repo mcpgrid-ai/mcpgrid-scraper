@@ -8,7 +8,7 @@ from .constants import SECURED_PARAMETERS_PATTERNS_LIST, WEB_HEADERS
 
 class SmithreApi():
     __api_endpoint = "https://registry.smithery.ai/servers"
-    __web_endpoint = "https://smithery.ai/server/"
+    __web_endpoint = "https://smithery.ai/servers/"
     
     def __init__(self, api_key, proxy, use_browser=True):
         self.http_client = requests.Session()
@@ -86,7 +86,7 @@ class SmithreApi():
                 self.open_browser(self.__web_endpoint + server_name)
                 continue
             tree = html.fromstring(res.text)
-            is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0
+            is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0 or len(tree.xpath('//div[contains(@class, "items-start")]//template')) > 0 
             if is_valid_html:
                 break
 
@@ -97,7 +97,7 @@ class SmithreApi():
             return {"exists": False, "is_valid_html": False, "html": res.text}
         official_el = tree.xpath('//h1[./span[@class="truncate"] and ./*[name()="svg"] ]')
         is_official = len(official_el) > 0
-        github_urls = tree.xpath('//div[./h3]/a[contains(@href, "https://github.com")]/@href')
+        github_urls = tree.xpath('//div[./span[text()="Repository"]]/div/a[contains(@href, "https://github.com") and ./*[name()="svg"] ]/@href')
         github_url = github_urls[0] if len(github_urls) > 0 else ""
         return {
             "isOfficial": is_official,
