@@ -1,6 +1,8 @@
+import re
 import requests
 import time
-from lxml import html
+import json
+from bs4 import BeautifulSoup
 from seleniumbase import SB
 
 from .constants import SECURED_PARAMETERS_PATTERNS_LIST, WEB_HEADERS
@@ -85,26 +87,51 @@ class SmithreApi():
             elif res.status_code == 403 or res.status_code == 429:
                 self.open_browser(self.__web_endpoint + server_name)
                 continue
-            tree = html.fromstring(res.text)
-            is_valid_html = len(tree.xpath('//div[contains(@class, "items-start")]//h1')) > 0 or len(tree.xpath('//div[contains(@class, "items-start")]//template')) > 0 
-            if is_valid_html:
-                break
-
-            time.sleep(5)
-            print("Request error, retry...")
+            break
         
-        if not is_valid_html:
-            return {"exists": False, "is_valid_html": False, "html": res.text}
-        official_el = tree.xpath('//h1[./span[@class="truncate"] and ./*[name()="svg"] ]')
-        is_official = len(official_el) > 0
-        github_urls = tree.xpath('//div[./span[text()="Repository"]]/div/a[contains(@href, "https://github.com") and ./*[name()="svg"] ]/@href')
-        github_url = github_urls[0] if len(github_urls) > 0 else ""
+        page_data = self.parse_page(res.text)        
         return {
-            "isOfficial": is_official,
-            "githubUrl": github_url,
+            "isOfficial": page_data["isOfficial"],
+            "githubUrl": page_data["githubUrl"],
             "exists": True
         }
+    
+    def parse_page(self, html):
+        soup = BeautifulSoup(html, "html.parser")
         
+        is_old_html = len(soup.select('div[class*="items-start"] h1')) > 0 or len(soup.select('div[class*="items-start"] template')) > 0
+        if is_old_html:
+            official_el = soup.select('h1:has(span.truncate):has(svg)')
+            is_official = len(official_el) > 0
+            github_urls = [a['href'] for a in soup.select('div:has(> span:-soup-contains("Repository")) div a[href*="https://github.com"]:has(svg)')]
+            github_url = github_urls[0] if github_urls else ""
+        else:
+            is_official = False
+            github_url = ""
+            
+            for script in soup.find_all("script"):
+                script_text = script.string or ""
+                if "sourceUrl" not in script_text:
+                    continue
+                match = re.match(r'self\.__next_f\.push\(\[1,"(.*)"\]\)', script_text, re.DOTALL)
+                if not match:
+                    continue
+                
+                decoded = json.loads('"' + match.group(1) + '"')
+                source_match = re.search(r'"sourceUrl":"(https://github\.com/[^"]+)"', decoded)
+                if source_match:
+                    github_url = source_match.group(1)
+                
+                verified_match = re.search(r'"verified":(true|false)', decoded)
+                if verified_match:
+                    is_official = verified_match.group(1) == "true"
+                break
+        
+        return {
+            "isOfficial": is_official,
+            "githubUrl": github_url
+        }
+
     def process_tools(self, tools):
         processed_tools = []
         if tools is None:
