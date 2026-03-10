@@ -192,7 +192,7 @@ class SmithreApi():
             proxy_driver = None
         
         print("Open browser")
-        with SB(locale="en", time_limit=60, headless=True, proxy=proxy_driver) as sb:
+        with SB(locale="en", time_limit=60, headless=True, proxy=proxy_driver, chromium_arg="--no-sandbox,--disable-dev-shm-usage") as sb:
             sb.activate_cdp_mode(url)
             sb.sleep(5)
             sb.solve_captcha()
