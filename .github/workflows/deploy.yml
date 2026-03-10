@@ -62,6 +62,7 @@ jobs:
             --parallelism=1
             --memory=2Gi
             --cpu=2
+            --execution-environment=gen2
           secrets: |
             SMITHERY_API_KEY=SMITHERY_API_KEY:latest
             SMITHERY_WEB_PROXY=SMITHERY_WEB_PROXY:latest
