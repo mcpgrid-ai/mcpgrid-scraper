@@ -18,6 +18,11 @@ RUN wget -q -O /tmp/google-chrome.gpg https://dl.google.com/linux/linux_signing_
     && apt-get install -y google-chrome-stable --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Wrap the real Chrome binary to always include container-required flags
+RUN mv /usr/bin/google-chrome /usr/bin/google-chrome-real \
+    && printf '#!/bin/bash\nexec /usr/bin/google-chrome-real --no-sandbox --disable-dev-shm-usage --disable-gpu "$@"\n' > /usr/bin/google-chrome \
+    && chmod +x /usr/bin/google-chrome
+
 # Create non-root user first
 RUN useradd -m -u 1000 appuser
 
