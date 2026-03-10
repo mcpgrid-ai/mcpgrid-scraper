@@ -11,16 +11,12 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget -q -O /tmp/google-chrome.gpg https://dl.google.com/linux/linux_signing_key.pub \
-    && gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg /tmp/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y chromium chromium-driver --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Wrap the real Chrome binary to always include container-required flags
-RUN mv /usr/bin/google-chrome /usr/bin/google-chrome-real \
-    && printf '#!/bin/bash\nexec /usr/bin/google-chrome-real --no-sandbox --disable-dev-shm-usage --disable-gpu "$@"\n' > /usr/bin/google-chrome \
+# Wrap the real Chromium binary to always include container-required flags
+RUN printf '#!/bin/bash\nexec /usr/bin/chromium --no-sandbox --disable-dev-shm-usage --disable-gpu "$@"\n' > /usr/bin/google-chrome \
     && chmod +x /usr/bin/google-chrome
 
 # Create non-root user first
@@ -31,8 +27,7 @@ RUN python -m venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && seleniumbase install chromedriver
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -41,5 +36,6 @@ USER appuser
 
 ENV PYTHONUNBUFFERED=1
 ENV CHROME_BIN=/usr/bin/google-chrome
+ENV CHROMIUM_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu"
 
 CMD ["python", "main.py"]
