@@ -60,7 +60,8 @@ jobs:
             --max-retries=1
             --task-timeout=24h
             --parallelism=1
-            --memory=1Gi
+            --memory=2Gi
+            --cpu=2
           secrets: |
             SMITHERY_API_KEY=SMITHERY_API_KEY:latest
             SMITHERY_WEB_PROXY=SMITHERY_WEB_PROXY:latest
